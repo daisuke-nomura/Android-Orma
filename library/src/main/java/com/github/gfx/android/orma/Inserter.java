@@ -43,17 +43,15 @@ public class Inserter<Model> implements Closeable {
 
     final boolean withoutAutoId;
 
-    final SQLiteStatement statement;
+    SQLiteStatement statement;
 
     final String sql;
 
     public Inserter(OrmaConnection conn, Schema<Model> schema, @OnConflict int onConflictAlgorithm, boolean withoutAutoId) {
-        SQLiteDatabase db = conn.getWritableDatabase();
         this.conn = conn;
         this.schema = schema;
         this.withoutAutoId = withoutAutoId;
         sql = schema.getInsertStatement(onConflictAlgorithm, withoutAutoId);
-        statement = db.compileStatement(sql);
     }
 
     public Inserter(OrmaConnection conn, Schema<Model> schema) {
@@ -68,6 +66,9 @@ public class Inserter<Model> implements Closeable {
      * @return The last inserted row id
      */
     public long execute(@NonNull Model model) {
+        SQLiteDatabase db = conn.getWritableDatabase();
+        statement = db.compileStatement(sql);
+
         if (conn.trace) {
             conn.trace(sql, schema.convertToArgs(conn, model, withoutAutoId));
         }
